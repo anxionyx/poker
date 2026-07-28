@@ -1,0 +1,30 @@
+name: Poker
+
+on:
+  workflow_dispatch:
+
+jobs:
+  build-and-test:
+    runs-on: ubuntu-latest
+
+    steps:
+      # Step 1: Clone the repository onto the GitHub runner
+      - name: Checkout repository code
+        uses: actions/checkout@v4
+
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: '3.11' # Specify your exact version (e.g., '3.10', '3.12') [2]
+          cache: 'pip'
+
+      - name: Install dependencies
+        run: pip install -r requirements.txt
+      - name: Run Server
+        run: daphne -b 0.0.0.0 -p 8000 server:application &
+      - name: Download Cloudflared
+        run: wget -O cloud.deb https://github.com/cloudflare/cloudflared/releases/latest/download/cloudflared-linux-amd64.deb
+      - name: Install Cloudflared
+        run: sudo dpkg -i ./cloud.deb
+      - name: expose port
+        run: cloudflared tunnel --url http://localhost:8000
